@@ -30,10 +30,16 @@ traceroute_bin = "/bin/traceroute-suid"
 @app.route("/")
 def icanhazafunction():
     mimetype = "text/plain"
+
+    if request.headers["X-Forwarded-For"] is None:
+        remote_addr = request.remote_addr
+    else:
+        remote_addr = request.headers["X-Forwarded-For"]
+
     if 'icanhazptr' in request.host:
         # The request is for *.icanhazptr.com
         try:
-            output = socket.gethostbyaddr(request.remote_addr)
+            output = socket.gethostbyaddr(remote_addr)
             result = output[0]
         except:
             result = request.remote_addr
@@ -44,22 +50,22 @@ def icanhazafunction():
         # The request is for *.icanhaztraceroute.com
         valid_ip = False
         try:
-            socket.inet_pton(socket.AF_INET, request.remote_addr)
+            socket.inet_pton(socket.AF_INET, remote_addr)
             valid_ip = True
         except socket.error:
             pass
         try:
-            socket.inet_pton(socket.AF_INET6, request.remote_addr)
+            socket.inet_pton(socket.AF_INET6, remote_addr)
             valid_ip = True
         except socket.error:
             pass
         if valid_ip:
             if 'icanhaztraceroute' in request.host:
                 tracecmd = shlex.split("%s -q 1 -f 2 -w 1 %s" %
-                                       (traceroute_bin, request.remote_addr))
+                                       (traceroute_bin, remote_addr))
             else:
                 tracecmd = shlex.split("%s -q 1 -f 2 -w 1 -n %s" %
-                                       (traceroute_bin, request.remote_addr))
+                                       (traceroute_bin, remote_addr))
             result = subprocess.Popen(
                 tracecmd,
                 stdout=subprocess.PIPE
@@ -93,9 +99,8 @@ def icanhazafunction():
         result = json.dumps(dict(request.headers))
     else:
         # The request is for *.icanhazip.com or something we don't recognize
-        result = request.remote_addr
-    return Response("%s\n" % result, mimetype=mimetype, headers={"X-Your-Ip": request.remote_addr})
-
+        result = remote_addr
+    return Response("%s\n" % result, mimetype=mimetype, headers={"X-Your-Ip": remote_addr})
 
 @app.route('/crossdomain.xml')
 @app.route('/humans.txt')
