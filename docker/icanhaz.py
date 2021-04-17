@@ -101,6 +101,7 @@ def icanhazafunction():
     else:
         # The request is for *.icanhazip.com or something we don't recognize
         result = remote_addr
+
     return Response("%s\n" % result, mimetype=mimetype, headers={"X-Your-Ip": remote_addr})
 
 @app.route('/crossdomain.xml')

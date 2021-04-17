@@ -1,4 +1,3 @@
-    Header set Content-Type "text/plain"
     <Directory /var/www/html/icanhaz-app/>
         WSGIProcessGroup icanhaz
         WSGIApplicationGroup %{GLOBAL}
